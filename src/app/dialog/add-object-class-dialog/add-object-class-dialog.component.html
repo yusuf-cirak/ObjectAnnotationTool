@@ -1,0 +1,11 @@
+<div mat-dialog-content>
+  <p>Enter your new object class below</p>
+  <mat-form-field appearance="fill">
+    <mat-label>Object Class</mat-label>
+    <input matInput [(ngModel)]="data.name">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button mat-dialog-close>No Thanks</button>
+  <button mat-button [mat-dialog-close]="data.name">Ok</button>
+</div>
