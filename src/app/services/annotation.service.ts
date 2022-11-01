@@ -21,6 +21,7 @@ export class AnnotationService {
     this.dialogService.openDialog({componentType:AddTagDialogComponent,data:{name:"",state:AddTagDialogState.No},
     afterClosed:(data)=>{
       tags.push(new Tag(3,3,data));
+      this.toastrService.message("New tag successfully added!","Tag Add",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight});
     }})
   }
 
@@ -29,6 +30,7 @@ export class AnnotationService {
     this.dialogService.openDialog({componentType:AddObjectClassComponent,data:{name:"",state:AddObjectClassDialogState.No},
     afterClosed:(data)=>{
       objectClasses.push(new ObjectClass(3,data));
+      this.toastrService.message("New object class successfully added!","Object Class Add",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight});
     }})
   }
 
