@@ -6,6 +6,6 @@
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button mat-dialog-close>No Thanks</button>
+  <button mat-button [mat-dialog-close]="data.state">No Thanks</button>
   <button mat-button [mat-dialog-close]="data.name">Ok</button>
 </div>

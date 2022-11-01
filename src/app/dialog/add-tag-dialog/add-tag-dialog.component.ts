@@ -11,9 +11,14 @@ export class AddTagDialogComponent extends BaseDialog<AddTagDialogComponent> {
   tag:string;
   constructor(
     dialogRef: MatDialogRef<AddTagDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: {name:string},
+    @Inject(MAT_DIALOG_DATA) public data: {name:string,state:AddDialogState.Yes},
   ) {
     super(dialogRef);
   }
+}
+
+export enum AddDialogState{
+  No,
+  Yes
 }
 
