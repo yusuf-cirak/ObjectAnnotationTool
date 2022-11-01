@@ -55,12 +55,17 @@
         <mat-option *ngFor="let tag of tags" [value]="tag.name">{{tag.name}}</mat-option>
       </mat-select>
     </mat-form-field>
-<button mat-raised-button color="warn" style="height:50px;margin-bottom:15px;" (click)="removeAnnotation(i)">Remove</button>
+    <button mat-fab color="secondary" style="margin-bottom:15px;" aria-label="Example icon button with a delete icon" (click)="removeAnnotation(i)">
+      <mat-icon>clear</mat-icon>
+    </button>
 
   </div>
 
 </div>
-<button *ngIf="output.annotations.length>0"  mat-raised-button style="height:50px;margin-bottom:15px;" (click)="saveAnnotations()">Save All</button>
+<button *ngIf="output.annotations.length>0"  mat-raised-button style="height:50px;margin-bottom:15px;" (click)="saveAnnotations()">
+  <mat-icon>archive</mat-icon>
+  Save All
+</button>
 
 </div>
 
