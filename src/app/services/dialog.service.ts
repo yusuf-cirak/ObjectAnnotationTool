@@ -1,38 +1,39 @@
-import { AddObjectClassState } from './../dialog/add-object-class-dialog/add-object-class-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import { DialogPosition, MatDialog } from '@angular/material/dialog';
 import { Injectable } from '@angular/core';
-import { AddObjectClassComponent } from '../dialog/add-object-class-dialog/add-object-class-dialog.component';
-import { AddDialogState as AddTagDialogState, AddTagDialogComponent } from '../dialog/add-tag-dialog/add-tag-dialog.component';
+import { ComponentType } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DialogService {
 
-  constructor(public dialog:MatDialog) { }
+  constructor(private dialog:MatDialog) { }
 
-
-  addTag() {
-    const dialogRef = this.dialog.open(AddTagDialogComponent, {
-      data: {name:"",state:AddTagDialogState.No},
+  openDialog(dialogParameters: Partial<DialogParameters>): void {
+    const dialogRef = this.dialog.open(dialogParameters.componentType, {
+      width: dialogParameters.options?.width,
+      height: dialogParameters.options?.height,
+      position: dialogParameters.options?.position,
+      data: dialogParameters.data,
     });
 
-    dialogRef.afterClosed().subscribe((data) => {
-      if (data!==AddTagDialogState.No) {
-        // db insert
-      }
-    });
-  }
-
-  addObjectClass() {
-    const dialogRef = this.dialog.open(AddObjectClassComponent, {
-      data: {name:"",state:AddObjectClassState.No},
-    });
-
-    dialogRef.afterClosed().subscribe((data) => {
-      if (data!==AddObjectClassState.No) {
-        // db insert
-      }
+    dialogRef.afterClosed().subscribe(data => {
+      if (data !== dialogParameters.data.state)
+        dialogParameters.afterClosed(data);
     });
   }
+
 }
+
+  export class DialogParameters {
+    componentType: ComponentType<any>;
+    data: any;
+    afterClosed: (result:any) => void;
+    options?: Partial<DialogOptions> = new DialogOptions();
+  }
+
+  export class DialogOptions {
+    width?: string = "250px";
+    height?: string;
+    position?: DialogPosition;
+  }

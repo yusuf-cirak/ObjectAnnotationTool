@@ -1,6 +1,5 @@
 import { ObjectClass } from './contracts/objectClass';
 import { Tag } from './contracts/tag';
-import { DialogService } from './services/dialog.service';
 import {
   AnnotationService,
   BoundingBox,
@@ -39,9 +38,7 @@ export class AppComponent implements AfterViewInit {
    */
   constructor(
     public dialog: MatDialog,
-    public annotationService: AnnotationService,
-    private dialogService: DialogService
-  ) {}
+    public annotationService: AnnotationService  ) {}
 
   ngAfterViewInit(): void {
     this.canvas = <HTMLCanvasElement>document.getElementById('canvas-draw');
@@ -97,14 +94,18 @@ export class AppComponent implements AfterViewInit {
   }
 
   addTag() {
-    this.dialogService.addTag();
+    this.annotationService.addTag(this.tags);
   }
 
   addObjectClass() {
-    this.dialogService.addObjectClass();
+    this.annotationService.addObjectClass(this.objectClasses);
   }
 
   saveAnnotations() {
     this.annotationService.saveAnnotations(this.annotationParameters);
+  }
+
+  removeAnnotation(index:number){
+    this.annotationService.removeAnnotation(index,this.annotationParameters);
   }
 }

@@ -1,3 +1,6 @@
+import { AddObjectClassComponent, AddObjectClassDialogState } from './../dialog/add-object-class-dialog/add-object-class-dialog.component';
+import { AddTagDialogComponent, AddTagDialogState } from './../dialog/add-tag-dialog/add-tag-dialog.component';
+import { DialogService } from './dialog.service';
 import { ObjectClass } from './../contracts/objectClass';
 import { Tag } from './../contracts/tag';
 import { CustomToastrService, ToastrMessageType, ToastrPosition } from './custom-toastr.service';
@@ -10,10 +13,23 @@ import { Point } from '../models/point';
 })
 export class AnnotationService {
 
-  /**
-   *
-   */
-  constructor(private toastrService:CustomToastrService) {
+  constructor(private toastrService:CustomToastrService,private dialogService:DialogService) {
+  }
+
+  addTag(tags:Tag[]){
+
+    this.dialogService.openDialog({componentType:AddTagDialogComponent,data:{name:"",state:AddTagDialogState.No},
+    afterClosed:(data)=>{
+      tags.push(new Tag(3,3,data));
+    }})
+  }
+
+  addObjectClass(objectClasses:ObjectClass[]){
+
+    this.dialogService.openDialog({componentType:AddObjectClassComponent,data:{name:"",state:AddObjectClassDialogState.No},
+    afterClosed:(data)=>{
+      objectClasses.push(new ObjectClass(3,data));
+    }})
   }
 
    onFileChanged($event: any,annotationParameters:Partial<AnnotationParameters>): boolean {
@@ -58,7 +74,7 @@ export class AnnotationService {
     document.getElementById('inputFile')?.click();
   }
 
-  private handleMouseDown($event: any,annotationParams:Partial<AnnotationParameters>) {
+  public handleMouseDown($event: any,annotationParams:Partial<AnnotationParameters>) {
     // window.scrollTo(0,0);
     annotationParams.boundingBox.clickOnCanvas = true;
 
@@ -72,7 +88,7 @@ export class AnnotationService {
     annotationParams.boundingBox.startPoint = upperLeftPoint;
   }
 
-  private handleMouseUp($event: any,annotationParams:Partial<AnnotationParameters>):void {
+  public handleMouseUp($event: any,annotationParams:Partial<AnnotationParameters>):void {
     if (annotationParams.boundingBox.clickOnCanvas) {
 
       annotationParams.annotationCounter++;
@@ -141,12 +157,34 @@ export class AnnotationService {
     }
 
     // api post request
+
+    this.toastrService.message("Annotations successfully saved to database!","Saved",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight})
   }
 
   findDuplicatesInArray(arr:any[]){
     return arr.filter((item,index)=>arr.indexOf(item)!==index);
   }
+
+
+  removeAnnotation(index:number,annotationParams:Partial<AnnotationParameters>){
+    if (index>=0) {
+      var annotations=annotationParams.boundingBox.output.annotations;
+      annotations.splice(index, 1);
+      }
+      annotationParams.context.clearRect(0, 0, annotationParams.canvas.width, annotationParams.canvas.height);
+
+      annotationParams.context.drawImage(annotationParams.image, 0, 0);
+
+      annotations.forEach(annotation => {
+        annotationParams.context.strokeRect(annotation.x,annotation.y,annotation.width,annotation.height);
+      });
+  }
 }
+
+
+
+
+
 
 
 export class AnnotationParameters{
@@ -159,9 +197,9 @@ export class AnnotationParameters{
 
   public fileName: string = '';
 
-  public tags;
+  public tags:Tag[];
 
-  public objectClasses;
+  public objectClasses:ObjectClass[];
 
   public anyAnnotationDrawed:boolean=false;
 

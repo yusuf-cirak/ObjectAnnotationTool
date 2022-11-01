@@ -12,13 +12,13 @@ export class AddObjectClassComponent extends BaseDialog<AddObjectClassComponent>
   tag:string;
   constructor(
     dialogRef: MatDialogRef<AddObjectClassComponent>,
-    @Inject(MAT_DIALOG_DATA) public data:{name:string,state:AddObjectClassState.No},
+    @Inject(MAT_DIALOG_DATA) public data:{name:string,state:AddObjectClassDialogState.No},
   ) {
     super(dialogRef);
   }
 }
 
-export enum AddObjectClassState{
+export enum AddObjectClassDialogState{
   No,
   Yes
 }
