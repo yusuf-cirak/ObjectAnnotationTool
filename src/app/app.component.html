@@ -33,12 +33,32 @@
       <span>Upload Image</span>
     </button>
     </div>
-
   </div>
 
   <div id="canvas">
-    <canvas id="canvas-draw" ></canvas>
+    <canvas id="canvas-draw"></canvas>
 </div>
+
+
+<div class="wrapper" *ngFor="let annotation of output.annotations; let i = index" class="row" [hidden]="output.annotations.length==0">
+  <div class="card-container" *ngIf="annotationParameters.anyAnnotationDrawed" style="align-items:center;">
+    <span style="width: 15px; margin-right: 10px;margin-bottom: 10px; font-size: large;">{{i+1}}.</span>
+    <mat-form-field  appearance="outline" class="col-2" style="margin-right:1rem;">
+      <mat-label>Select Object Class</mat-label>
+      <mat-select [(value)]="annotation.selectedObjectClass">
+        <mat-option *ngFor="let objectClass of objectClasses; let i = index" value="{{objectClass.name}}">{{objectClass.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="col-2" style="margin-right:1rem;">
+      <mat-label>Select tags</mat-label>
+      <mat-select [(value)]="annotation.selectedTags" multiple>
+        <mat-option *ngFor="let tag of tags" [value]="tag.name">{{tag.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+</div>
+<button *ngIf="output.annotations.length>0"  mat-raised-button style="height:50px;margin-bottom:15px;" (click)="saveAnnotations()">Save All</button>
 
 </div>
 

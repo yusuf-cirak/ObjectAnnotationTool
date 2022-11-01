@@ -1,3 +1,6 @@
+import { ObjectClass } from './../contracts/objectClass';
+import { Tag } from './../contracts/tag';
+import { CustomToastrService, ToastrMessageType, ToastrPosition } from './custom-toastr.service';
 import { Injectable } from '@angular/core';
 import { Annotation } from '../models/annotation';
 import { Point } from '../models/point';
@@ -7,30 +10,32 @@ import { Point } from '../models/point';
 })
 export class AnnotationService {
 
-   onFileChanged($event: any,annotationParameters:Partial<AnnotationParameters>) {
+  /**
+   *
+   */
+  constructor(private toastrService:CustomToastrService) {
+  }
+
+   onFileChanged($event: any,annotationParameters:Partial<AnnotationParameters>): boolean {
     if ($event.target.files && $event.target.files[0]) {
       var reader = new FileReader();
-      var that = this;
       annotationParameters.fileName=$event.target.files[0].name;
-      // this.fileName = $event.target.files[0].name;
       reader.onload = function (e: any) {
         annotationParameters.image.src=e.target.result;
-        // that.image.src = e.target.result;
-
         annotationParameters.image.onload=()=>{
-          annotationParameters.canvas.width = annotationParameters.image.width;
-          annotationParameters.canvas.height = annotationParameters.image.height;
+          var width=annotationParameters.image.width;
+          var height=annotationParameters.image.height;
+          annotationParameters.canvas.width = width>=1024?1024:width;
+          annotationParameters.canvas.height = height>=768?768:height;
           annotationParameters.context.drawImage(annotationParameters.image, 0, 0);
         }
-        // that.image.onload = function () {
-        //   that.canvas.width = that.image.width;
-        //   that.canvas.height = that.image.height;
-        //   that.context.drawImage(that.image, 0, 0);
-        // };
       };
       reader.readAsDataURL($event.target.files[0]);
-      annotationParameters.imageUploaded=true;
+
+      return true;
     }
+
+    return false;
   }
 
   public newImage(annotationParams:Partial<AnnotationParameters>) {
@@ -53,29 +58,25 @@ export class AnnotationService {
     document.getElementById('inputFile')?.click();
   }
 
-
-  // Bounding Boxes
-  // public pointCounter: number = 0;
-  // public annotationCounter: number = 0;
-  // public startPoint = null;
-  // public clickOnCanvas: boolean = false;
-  // public output = {
-  //   imageName: this.image.src.replace(/^.*[\\\/]/, ''),
-  //   annotations: [],
-  // };
-
-  public handleMouseDown($event: any,annotationParams:Partial<AnnotationParameters>) {
+  private handleMouseDown($event: any,annotationParams:Partial<AnnotationParameters>) {
+    // window.scrollTo(0,0);
     annotationParams.boundingBox.clickOnCanvas = true;
 
     // Establish upper left point
     var upperLeftPoint: Point = { x: 0, y: 0 };
+    // upperLeftPoint.x = $event.x - annotationParams.canvas.offsetLeft;
+    // upperLeftPoint.y = $event.y - annotationParams.canvas.offsetTop;
+
     upperLeftPoint.x = $event.x - annotationParams.canvas.offsetLeft;
     upperLeftPoint.y = $event.y - annotationParams.canvas.offsetTop;
     annotationParams.boundingBox.startPoint = upperLeftPoint;
   }
 
-  public handleMouseUp($event: any,annotationParams:Partial<AnnotationParameters>, callback?: (annotation:Annotation) => void) {
+  private handleMouseUp($event: any,annotationParams:Partial<AnnotationParameters>):void {
     if (annotationParams.boundingBox.clickOnCanvas) {
+
+      annotationParams.annotationCounter++;
+
       // Establish lower right point
       var lowerRightPoint: Point = { x: 0, y: 0 };
       lowerRightPoint.x = $event.x - annotationParams.canvas.offsetLeft;
@@ -85,6 +86,7 @@ export class AnnotationService {
       var height = lowerRightPoint.y - annotationParams.boundingBox.startPoint.y;
 
       var annotation = new Annotation(
+        annotationParams.annotationCounter,
         annotationParams.boundingBox.startPoint.x,
         annotationParams.boundingBox.startPoint.y,
         width,
@@ -100,20 +102,60 @@ export class AnnotationService {
 
       // Push box object to annotations list
       annotationParams.boundingBox.output.annotations.push(annotation);
-      console.log(annotationParams.boundingBox.output);
+
       annotationParams.boundingBox.clickOnCanvas = false;
-      callback(annotation);
+
+      annotationParams.anyAnnotationDrawed=true;
+
     }
+  }
+
+
+ public removeSelectedValue(annotationArray:Annotation[],annotation:Annotation){
+  annotationArray.splice(annotationArray.indexOf(annotation),1);
+  }
+
+  public saveAnnotations(annotationParams:Partial<AnnotationParameters>){
+    var selectedObjectClasses=[];
+
+    var annotations=annotationParams.boundingBox.output.annotations;
+
+    for (const annotation of annotations) {
+      if (annotation.selectedObjectClass===null) {
+        this.toastrService.message(`You haven't select object class for annotation that numbered as ${annotation.id}.\nSelect object classes for your annotations`,"Object Class Error",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+        return;
+      }
+      selectedObjectClasses.push(annotation.selectedObjectClass);
+    }
+
+    if (selectedObjectClasses.length===0) {
+      this.toastrService.message("You haven't select object class for your annotations.\nSelect object classes for your annotations","Object Class Error",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+      return;
+
+    }
+    var duplicateArr=this.findDuplicatesInArray(selectedObjectClasses);
+
+    if (duplicateArr.length>0) {
+      this.toastrService.message("You selected same object classes for different annotations.\nCheck your object classes for annotations","Duplicate Object Classes for annotations",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+      return;
+    }
+
+    // api post request
+  }
+
+  findDuplicatesInArray(arr:any[]){
+    return arr.filter((item,index)=>arr.indexOf(item)!==index);
   }
 }
 
 
 export class AnnotationParameters{
-  public imageUploaded: boolean = false;
+  public annotationCounter:number=0;
+  public imageUploaded: boolean;
 
-  public canvas: HTMLCanvasElement;
-  public context: CanvasRenderingContext2D;
-  public image: HTMLImageElement = new Image();
+  public canvas?: HTMLCanvasElement;
+  public context?: CanvasRenderingContext2D;
+  public image: HTMLImageElement;
 
   public fileName: string = '';
 
@@ -121,33 +163,42 @@ export class AnnotationParameters{
 
   public objectClasses;
 
+  public anyAnnotationDrawed:boolean=false;
+
   public boundingBox:BoundingBox;
+
+  /**
+   *
+   */
+  constructor(annotationCounter:number,imageUploaded:boolean,canvas:HTMLCanvasElement,context:CanvasRenderingContext2D,image:HTMLImageElement,fileName:any,tags:Tag[],objectClasses:ObjectClass[],anyAnnotationDrawed:boolean,boundingBox:BoundingBox) {
+    this.annotationCounter=annotationCounter;
+    this.imageUploaded=imageUploaded;
+    this.canvas=canvas;
+    this.context=context;
+    this.image=image;
+    this.fileName=fileName;
+    this.tags=tags;
+    this.objectClasses=objectClasses;
+    this.anyAnnotationDrawed=anyAnnotationDrawed;
+    this.boundingBox=boundingBox;
+  }
+
 
 }
 
  export class BoundingBox{
 
   public output:any;
-  public pointCounter: number = 0;
-  public annotationCounter: number = 0;
-  public startPoint = null;
-  public clickOnCanvas: boolean = false;
+  public annotationCounter: number;
+  public startPoint:any;
+  public clickOnCanvas: boolean;
 
-  /**
-   *
-   */
-  constructor(output:any,pointCounter:number,annotationCounter:number,startPoint:any,clickOnCanvas:boolean) {
+  constructor(output:any,annotationCounter:number,startPoint:any,clickOnCanvas:boolean) {
 
-    this.pointCounter=pointCounter;
     this.annotationCounter=annotationCounter;
-    this.startPoint=null;
+    this.startPoint=startPoint
     this.clickOnCanvas=clickOnCanvas;
     this.output = output;
   }
-  /**
-   *
-   */
-
-
 
 }

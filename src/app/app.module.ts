@@ -10,6 +10,10 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms'
 import {MatInputModule} from '@angular/material/input';
 import { AddObjectClassComponent } from './dialog/add-object-class-dialog/add-object-class-dialog.component';
+import {MatCardModule} from '@angular/material/card';
+import {MatSelectModule} from '@angular/material/select';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -24,7 +28,12 @@ import { AddObjectClassComponent } from './dialog/add-object-class-dialog/add-ob
     MatDialogModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatCardModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+    ToastrModule.forRoot()
+
   ],
   providers: [],
   bootstrap: [AppComponent]
