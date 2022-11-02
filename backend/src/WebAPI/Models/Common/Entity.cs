@@ -9,14 +9,14 @@ namespace WebAPI.Models.Common
     {
 
 
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         public Entity()
         {
 
         }
 
-        public Entity(string id)
+        public Entity(int id)
         {
             Id = id;
         }

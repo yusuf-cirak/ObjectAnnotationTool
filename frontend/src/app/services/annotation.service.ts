@@ -32,7 +32,7 @@ export class AnnotationService {
       componentType: AddTagDialogComponent,
       data: { name: '', state: AddTagDialogState.No },
       afterClosed: (data) => {
-        if (data !== AddTagDialogState.No && data != '') {
+        if (data !== AddTagDialogState.No && data !==undefined) {
           tags.push(new Tag(3, 3, data));
           this.toastrService.message('New tag successfully added!', 'Tag Add', {
             messageType: ToastrMessageType.Success,
@@ -48,7 +48,7 @@ export class AnnotationService {
       componentType: AddObjectClassComponent,
       data: { name: '', state: AddObjectClassDialogState.No },
       afterClosed: (data) => {
-        if (data !== AddObjectClassDialogState.No && data != '') {
+        if (data !== AddObjectClassDialogState.No && data !==undefined) {
           objectClasses.push(new ObjectClass(3, data));
           this.toastrService.message(
             'New object class successfully added!',
@@ -248,7 +248,7 @@ export class AnnotationService {
     // api post request
 
     this.toastrService.message(
-      'Annotations successfully saved to database!',
+      'Annotations writed to text file and saved to database successfully!',
       'Saved',
       {
         messageType: ToastrMessageType.Success,
