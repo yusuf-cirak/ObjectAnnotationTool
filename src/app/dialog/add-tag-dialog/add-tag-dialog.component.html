@@ -1,21 +1,11 @@
-
-<!-- <h1 mat-dialog-title>Delete file</h1>
-<div mat-dialog-content>
-  Would you like to delete cat.jpeg?
-</div>
-<div mat-dialog-actions>
-  <button mat-button mat-dialog-close>No</button>
-  <button mat-button mat-dialog-close cdkFocusInitial>Ok</button>
-</div> -->
-
 <div mat-dialog-content>
   <p>Enter your new tag below</p>
   <mat-form-field appearance="fill">
     <mat-label>Tag</mat-label>
-    <input matInput [(ngModel)]="data.name">
+    <input matInput [(ngModel)]="data.name" />
   </mat-form-field>
 </div>
 <div mat-dialog-actions>
-  <button mat-button [mat-dialog-close]="data.state">İptal</button>
-  <button mat-button [mat-dialog-close]="data.name">Ekle</button>
+  <button mat-button [mat-dialog-close]="data.state">No Thanks</button>
+  <button mat-button [mat-dialog-close]="data.name">Ok</button>
 </div>

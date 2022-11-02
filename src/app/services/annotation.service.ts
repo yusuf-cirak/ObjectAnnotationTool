@@ -1,62 +1,124 @@
-import { AddObjectClassComponent, AddObjectClassDialogState } from './../dialog/add-object-class-dialog/add-object-class-dialog.component';
-import { AddTagDialogComponent, AddTagDialogState } from './../dialog/add-tag-dialog/add-tag-dialog.component';
+import {
+  AddObjectClassComponent,
+  AddObjectClassDialogState,
+} from '../dialog/add-object-class-dialog/add-object-class-dialog.component';
+import {
+  AddTagDialogComponent,
+  AddTagDialogState,
+} from '../dialog/add-tag-dialog/add-tag-dialog.component';
 import { DialogService } from './dialog.service';
-import { ObjectClass } from './../contracts/objectClass';
-import { Tag } from './../contracts/tag';
-import { CustomToastrService, ToastrMessageType, ToastrPosition } from './custom-toastr.service';
+import { ObjectClass } from '../contracts/objectClass';
+import { Tag } from '../contracts/tag';
+import {
+  CustomToastrService,
+  ToastrMessageType,
+  ToastrPosition,
+} from './custom-toastr.service';
 import { Injectable } from '@angular/core';
-import { Annotation } from '../models/annotation';
-import { Point } from '../models/point';
+import { Annotation } from '../models/Annotation';
+import { Point } from '../models/Point';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AnnotationService {
+  constructor(
+    private toastrService: CustomToastrService,
+    private dialogService: DialogService
+  ) {}
 
-  constructor(private toastrService:CustomToastrService,private dialogService:DialogService) {
-  }
-
-  addTag(tags:Tag[]){
-
-    this.dialogService.openDialog({componentType:AddTagDialogComponent,data:{name:"",state:AddTagDialogState.No},
-    afterClosed:(data)=>{
-      tags.push(new Tag(3,3,data));
-      this.toastrService.message("New tag successfully added!","Tag Add",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight});
-    }})
-  }
-
-  addObjectClass(objectClasses:ObjectClass[]){
-
-    this.dialogService.openDialog({componentType:AddObjectClassComponent,data:{name:"",state:AddObjectClassDialogState.No},
-    afterClosed:(data)=>{
-      objectClasses.push(new ObjectClass(3,data));
-      this.toastrService.message("New object class successfully added!","Object Class Add",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight});
-    }})
-  }
-
-   onFileChanged($event: any,annotationParameters:Partial<AnnotationParameters>): boolean {
-    if ($event.target.files && $event.target.files[0]) {
-      var reader = new FileReader();
-      annotationParameters.fileName=$event.target.files[0].name;
-      reader.onload = function (e: any) {
-        annotationParameters.image.src=e.target.result;
-        annotationParameters.image.onload=()=>{
-          var width=annotationParameters.image.width;
-          var height=annotationParameters.image.height;
-          annotationParameters.canvas.width = width>=1024?1024:width;
-          annotationParameters.canvas.height = height>=768?768:height;
-          annotationParameters.context.drawImage(annotationParameters.image, 0, 0);
+  addTag(tags: Tag[]) {
+    this.dialogService.openDialog({
+      componentType: AddTagDialogComponent,
+      data: { name: '', state: AddTagDialogState.No },
+      afterClosed: (data) => {
+        if (data !== AddTagDialogState.No && data != '') {
+          tags.push(new Tag(3, 3, data));
+          this.toastrService.message('New tag successfully added!', 'Tag Add', {
+            messageType: ToastrMessageType.Success,
+            position: ToastrPosition.TopRight,
+          });
         }
-      };
-      reader.readAsDataURL($event.target.files[0]);
+      },
+    });
+  }
 
-      return true;
+  addObjectClass(objectClasses: ObjectClass[]) {
+    this.dialogService.openDialog({
+      componentType: AddObjectClassComponent,
+      data: { name: '', state: AddObjectClassDialogState.No },
+      afterClosed: (data) => {
+        if (data !== AddObjectClassDialogState.No && data != '') {
+          objectClasses.push(new ObjectClass(3, data));
+          this.toastrService.message(
+            'New object class successfully added!',
+            'Object Class Add',
+            {
+              messageType: ToastrMessageType.Success,
+              position: ToastrPosition.TopRight,
+            }
+          );
+        }
+      },
+    });
+  }
+
+  onFileChanged(
+    $event: any,
+    annotationParameters: Partial<AnnotationParameters>
+  ): boolean {
+
+    const file = $event.target.files[0];
+
+    if ($event.target.files && file) {
+
+      var reader = new FileReader();
+
+      annotationParameters.fileName = file.name;
+
+      var type=$event.target.files[0].type.split('/')[0];
+
+      if (type!=="image") {
+        annotationParameters.imageUploaded=false;
+          this.toastrService.message(
+            'Please upload an image!',
+            'File Upload Error',
+            {
+              messageType: ToastrMessageType.Error,
+              position: ToastrPosition.TopRight,
+            }
+          );
+        return false;
+      }
+
+      reader.onload = (e: any) => {
+        var imageSrc = e.target.result;
+        annotationParameters.imageUploaded=true;
+
+          annotationParameters.image.src = imageSrc;
+
+          annotationParameters.image.onload = () => {
+            var width = annotationParameters.image.width;
+            var height = annotationParameters.image.height;
+            annotationParameters.canvas.width = width >= 1024 ? 1024 : width;
+            annotationParameters.canvas.height = height >= 768 ? 768 : height;
+            annotationParameters.context.drawImage(
+              annotationParameters.image,
+              0,
+              0
+            );
+          };
+      };
+
+      reader.readAsDataURL(file);
+
+      return true
     }
 
-    return false;
+    return false
   }
 
-  public newImage(annotationParams:Partial<AnnotationParameters>) {
+  public newImage(annotationParams: Partial<AnnotationParameters>) {
     var canvasDraw = document.getElementById(
       'canvas-draw'
     ) as HTMLCanvasElement;
@@ -66,33 +128,36 @@ export class AnnotationService {
     var that = this;
 
     function mouseUp($event: any) {
-      that.handleMouseUp($event,annotationParams);
+      that.handleMouseUp($event, annotationParams);
     }
 
     function mouseDown($event: any) {
-      that.handleMouseDown($event,annotationParams);
+      that.handleMouseDown($event, annotationParams);
     }
 
     document.getElementById('inputFile')?.click();
   }
 
-  public handleMouseDown($event: any,annotationParams:Partial<AnnotationParameters>) {
+  public handleMouseDown(
+    $event: any,
+    annotationParams: Partial<AnnotationParameters>
+  ) {
     // window.scrollTo(0,0);
     annotationParams.boundingBox.clickOnCanvas = true;
 
     // Establish upper left point
     var upperLeftPoint: Point = { x: 0, y: 0 };
-    // upperLeftPoint.x = $event.x - annotationParams.canvas.offsetLeft;
-    // upperLeftPoint.y = $event.y - annotationParams.canvas.offsetTop;
 
     upperLeftPoint.x = $event.x - annotationParams.canvas.offsetLeft;
     upperLeftPoint.y = $event.y - annotationParams.canvas.offsetTop;
     annotationParams.boundingBox.startPoint = upperLeftPoint;
   }
 
-  public handleMouseUp($event: any,annotationParams:Partial<AnnotationParameters>):void {
+  public handleMouseUp(
+    $event: any,
+    annotationParams: Partial<AnnotationParameters>
+  ): void {
     if (annotationParams.boundingBox.clickOnCanvas) {
-
       annotationParams.annotationCounter++;
 
       // Establish lower right point
@@ -101,7 +166,8 @@ export class AnnotationService {
       lowerRightPoint.y = $event.y - annotationParams.canvas.offsetTop;
 
       var width = lowerRightPoint.x - annotationParams.boundingBox.startPoint.x;
-      var height = lowerRightPoint.y - annotationParams.boundingBox.startPoint.y;
+      var height =
+        lowerRightPoint.y - annotationParams.boundingBox.startPoint.y;
 
       var annotation = new Annotation(
         annotationParams.annotationCounter,
@@ -123,74 +189,108 @@ export class AnnotationService {
 
       annotationParams.boundingBox.clickOnCanvas = false;
 
-      annotationParams.anyAnnotationDrawed=true;
-
+      annotationParams.anyAnnotationDrawed = true;
     }
   }
 
-
- public removeSelectedValue(annotationArray:Annotation[],annotation:Annotation){
-  annotationArray.splice(annotationArray.indexOf(annotation),1);
+  public removeSelectedValue(
+    annotationArray: Annotation[],
+    annotation: Annotation
+  ) {
+    annotationArray.splice(annotationArray.indexOf(annotation), 1);
   }
 
-  public saveAnnotations(annotationParams:Partial<AnnotationParameters>){
-    var selectedObjectClasses=[];
+  public saveAnnotations(annotationParams: Partial<AnnotationParameters>) {
+    var selectedObjectClasses = [];
 
-    var annotations=annotationParams.boundingBox.output.annotations;
+    var annotations = annotationParams.boundingBox.output.annotations;
 
     for (const annotation of annotations) {
-      if (annotation.selectedObjectClass===null) {
-        this.toastrService.message(`You haven't select object class for annotation that numbered as ${annotation.id}.\nSelect object classes for your annotations`,"Object Class Error",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+      if (annotation.selectedObjectClass === null) {
+        this.toastrService.message(
+          `You haven't select object class for annotation that numbered as ${annotation.id}.\nSelect object classes for your annotations`,
+          'Object Class Error',
+          {
+            messageType: ToastrMessageType.Error,
+            position: ToastrPosition.TopRight,
+          }
+        );
         return;
       }
       selectedObjectClasses.push(annotation.selectedObjectClass);
     }
 
-    if (selectedObjectClasses.length===0) {
-      this.toastrService.message("You haven't select object class for your annotations.\nSelect object classes for your annotations","Object Class Error",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+    if (selectedObjectClasses.length === 0) {
+      this.toastrService.message(
+        "You haven't select object class for your annotations.\nSelect object classes for your annotations",
+        'Object Class Error',
+        {
+          messageType: ToastrMessageType.Error,
+          position: ToastrPosition.TopRight,
+        }
+      );
       return;
-
     }
-    var duplicateArr=this.findDuplicatesInArray(selectedObjectClasses);
+    var duplicateArr = this.findDuplicatesInArray(selectedObjectClasses);
 
-    if (duplicateArr.length>0) {
-      this.toastrService.message("You selected same object classes for different annotations.\nCheck your object classes for annotations","Duplicate Object Classes for annotations",{messageType:ToastrMessageType.Error,position:ToastrPosition.TopRight})
+    if (duplicateArr.length > 0) {
+      this.toastrService.message(
+        'You selected same object classes for different annotations.\nCheck your object classes for annotations',
+        'Duplicate Object Classes for annotations',
+        {
+          messageType: ToastrMessageType.Error,
+          position: ToastrPosition.TopRight,
+        }
+      );
       return;
     }
 
     // api post request
 
-    this.toastrService.message("Annotations successfully saved to database!","Saved",{messageType:ToastrMessageType.Success,position:ToastrPosition.TopRight})
-  }
-
-  findDuplicatesInArray(arr:any[]){
-    return arr.filter((item,index)=>arr.indexOf(item)!==index);
-  }
-
-
-  removeAnnotation(index:number,annotationParams:Partial<AnnotationParameters>){
-    if (index>=0) {
-      var annotations=annotationParams.boundingBox.output.annotations;
-      annotations.splice(index, 1);
+    this.toastrService.message(
+      'Annotations successfully saved to database!',
+      'Saved',
+      {
+        messageType: ToastrMessageType.Success,
+        position: ToastrPosition.TopRight,
       }
-      annotationParams.context.clearRect(0, 0, annotationParams.canvas.width, annotationParams.canvas.height);
+    );
+  }
 
-      annotationParams.context.drawImage(annotationParams.image, 0, 0);
+  findDuplicatesInArray(arr: any[]) {
+    return arr.filter((item, index) => arr.indexOf(item) !== index);
+  }
 
-      annotations.forEach(annotation => {
-        annotationParams.context.strokeRect(annotation.x,annotation.y,annotation.width,annotation.height);
-      });
+  removeAnnotation(
+    index: number,
+    annotationParams: Partial<AnnotationParameters>
+  ) {
+    if (index >= 0) {
+      var annotations = annotationParams.boundingBox.output.annotations;
+      annotations.splice(index, 1);
+    }
+    annotationParams.context.clearRect(
+      0,
+      0,
+      annotationParams.canvas.width,
+      annotationParams.canvas.height
+    );
+
+    annotationParams.context.drawImage(annotationParams.image, 0, 0);
+
+    annotations.forEach((annotation) => {
+      annotationParams.context.strokeRect(
+        annotation.x,
+        annotation.y,
+        annotation.width,
+        annotation.height
+      );
+    });
   }
 }
 
-
-
-
-
-
-
-export class AnnotationParameters{
-  public annotationCounter:number=0;
+export class AnnotationParameters {
+  public annotationCounter: number = 0;
   public imageUploaded: boolean;
 
   public canvas?: HTMLCanvasElement;
@@ -199,46 +299,57 @@ export class AnnotationParameters{
 
   public fileName: string = '';
 
-  public tags:Tag[];
+  public tags: Tag[];
 
-  public objectClasses:ObjectClass[];
+  public objectClasses: ObjectClass[];
 
-  public anyAnnotationDrawed:boolean=false;
+  public anyAnnotationDrawed: boolean = false;
 
-  public boundingBox:BoundingBox;
+  public boundingBox: BoundingBox;
 
   /**
    *
    */
-  constructor(annotationCounter:number,imageUploaded:boolean,canvas:HTMLCanvasElement,context:CanvasRenderingContext2D,image:HTMLImageElement,fileName:any,tags:Tag[],objectClasses:ObjectClass[],anyAnnotationDrawed:boolean,boundingBox:BoundingBox) {
-    this.annotationCounter=annotationCounter;
-    this.imageUploaded=imageUploaded;
-    this.canvas=canvas;
-    this.context=context;
-    this.image=image;
-    this.fileName=fileName;
-    this.tags=tags;
-    this.objectClasses=objectClasses;
-    this.anyAnnotationDrawed=anyAnnotationDrawed;
-    this.boundingBox=boundingBox;
+  constructor(
+    annotationCounter: number,
+    imageUploaded: boolean,
+    canvas: HTMLCanvasElement,
+    context: CanvasRenderingContext2D,
+    image: HTMLImageElement,
+    fileName: any,
+    tags: Tag[],
+    objectClasses: ObjectClass[],
+    anyAnnotationDrawed: boolean,
+    boundingBox: BoundingBox
+  ) {
+    this.annotationCounter = annotationCounter;
+    this.imageUploaded = imageUploaded;
+    this.canvas = canvas;
+    this.context = context;
+    this.image = image;
+    this.fileName = fileName;
+    this.tags = tags;
+    this.objectClasses = objectClasses;
+    this.anyAnnotationDrawed = anyAnnotationDrawed;
+    this.boundingBox = boundingBox;
   }
-
-
 }
 
- export class BoundingBox{
-
-  public output:any;
+export class BoundingBox {
+  public output: any;
   public annotationCounter: number;
-  public startPoint:any;
+  public startPoint: any;
   public clickOnCanvas: boolean;
 
-  constructor(output:any,annotationCounter:number,startPoint:any,clickOnCanvas:boolean) {
-
-    this.annotationCounter=annotationCounter;
-    this.startPoint=startPoint
-    this.clickOnCanvas=clickOnCanvas;
+  constructor(
+    output: any,
+    annotationCounter: number,
+    startPoint: any,
+    clickOnCanvas: boolean
+  ) {
+    this.annotationCounter = annotationCounter;
+    this.startPoint = startPoint;
+    this.clickOnCanvas = clickOnCanvas;
     this.output = output;
   }
-
 }

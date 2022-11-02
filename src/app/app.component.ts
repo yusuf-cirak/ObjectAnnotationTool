@@ -5,7 +5,7 @@ import {
   BoundingBox,
   AnnotationParameters,
 } from './services/annotation.service';
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -71,6 +71,7 @@ export class AppComponent implements AfterViewInit {
       $event,
       this.annotationParameters
     );
+    alert(this.imageUploaded)
   }
 
   public pointCounter: number = 0;
