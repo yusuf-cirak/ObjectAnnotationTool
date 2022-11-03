@@ -1,9 +1,19 @@
-<div mat-dialog-content>
-  <p>Enter your new tag below</p>
-  <mat-form-field appearance="fill">
-    <mat-label>Tag</mat-label>
-    <input matInput [(ngModel)]="data.name" />
+<div mat-dialog-content style="width:250px ;">
+
+
+  <mat-form-field>
+    <mat-label>Object Class</mat-label>
+      <mat-select [(value)]="data.selectedObjectClassId" >
+        <mat-option *ngFor="let objectClass of objectClasses; let i = index" value="{{objectClass.id}}">{{objectClass.name}}</mat-option>
+      </mat-select>
   </mat-form-field>
+
+  <mat-form-field>
+    <p>Enter your new tag below</p>
+    <input matInput [(ngModel)]="data.name" style="margin-top:15px ;" />
+    </mat-form-field>
+
+
 </div>
 <div mat-dialog-actions>
   <button mat-button [mat-dialog-close]="data.state">No Thanks</button>

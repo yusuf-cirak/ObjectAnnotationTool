@@ -1,5 +1,7 @@
+import { AppComponent } from './../../app.component';
+import { ObjectClass } from './../../contracts/objectClass';
 import { MatDialogRef,MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import BaseDialog from 'src/app/base/base.dialog';
 
 @Component({
@@ -8,12 +10,27 @@ import BaseDialog from 'src/app/base/base.dialog';
   styleUrls: ['./add-tag-dialog.component.css']
 })
 export class AddTagDialogComponent extends BaseDialog<AddTagDialogComponent> {
-  tag:string;
+
+
+objectClasses:ObjectClass[]
+
   constructor(
     dialogRef: MatDialogRef<AddTagDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: {name:string,state:AddTagDialogState.No},
+    @Inject(MAT_DIALOG_DATA) public data:AddTagDialogData,
   ) {
     super(dialogRef);
+  }
+}
+
+export class AddTagDialogData{
+  selectedObjectClassId:number
+  name:string
+  state:AddTagDialogState=AddTagDialogState.No
+
+  constructor(selectedObjectClassId:number,name:string,state:AddTagDialogState) {
+    this.selectedObjectClassId=selectedObjectClassId;
+    this.name=name;
+    this.state=state;
   }
 }
 

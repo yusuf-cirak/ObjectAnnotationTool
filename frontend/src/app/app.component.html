@@ -45,7 +45,7 @@
     <span style="width: 15px; margin-right: 10px;margin-bottom: 10px; font-size: large;">{{i+1}}.</span>
     <mat-form-field  appearance="outline" class="col-2" style="margin-right:1rem;">
       <mat-label>Select Object Class</mat-label>
-      <mat-select [(value)]="annotation.selectedObjectClass">
+      <mat-select [(value)]="annotation.selectedObjectClass" (selectionChange)="getTagsForObject(i)" >
         <mat-option *ngFor="let objectClass of objectClasses; let i = index" value="{{objectClass.name}}">{{objectClass.name}}</mat-option>
       </mat-select>
     </mat-form-field>

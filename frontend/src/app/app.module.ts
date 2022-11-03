@@ -15,6 +15,7 @@ import {MatSelectModule} from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ToastrModule } from 'ngx-toastr';
 import {MatIconModule} from '@angular/material/icon'
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import {MatIconModule} from '@angular/material/icon'
     MatIconModule,
     MatSelectModule,
     ReactiveFormsModule,
+    HttpClientModule,
     ToastrModule.forRoot()
 
   ],

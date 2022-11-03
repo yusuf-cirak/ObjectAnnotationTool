@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.WithOrigins("http://localhost:4200","https://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+// Accept anything from header, accept any method. Only on localhost:4200 and http & https protocol 
+
 builder.Services.AddFastEndpoints();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -27,6 +30,8 @@ var app = builder.Build();
 
 
 // Configure the HTTP request pipeline.
+
+app.UseCors();
 
 app.UseStaticFiles();
 

@@ -1,3 +1,4 @@
+import { HttpClientService } from './http-client.service';
 import {
   AddObjectClassComponent,
   AddObjectClassDialogState,
@@ -24,15 +25,16 @@ import { Point } from '../models/Point';
 export class AnnotationService {
   constructor(
     private toastrService: CustomToastrService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private httpClientService:HttpClientService
   ) {}
 
   addTag(tags: Tag[]) {
     this.dialogService.openDialog({
       componentType: AddTagDialogComponent,
-      data: { name: '', state: AddTagDialogState.No },
+      data: { name: '',selectedObjectClass:ObjectClass, state: AddTagDialogState.No },
       afterClosed: (data) => {
-        if (data !== AddTagDialogState.No && data !==undefined) {
+        if (data !== AddTagDialogState.No && data !==undefined && data) {
           tags.push(new Tag(3, 3, data));
           this.toastrService.message('New tag successfully added!', 'Tag Add', {
             messageType: ToastrMessageType.Success,
@@ -286,6 +288,23 @@ export class AnnotationService {
         annotation.height
       );
     });
+  }
+
+
+   getObjectClasses(){
+    return this.httpClientService.get<ObjectClass[]>({fullEndPoint:"https://localhost:7107/api/objectClasses"})
+  }
+
+   getTags(){
+    return this.httpClientService.get<Tag[]>({fullEndPoint:"https://localhost:7107/api/tags"})
+  }
+
+  createTag(objectClassId:number,name:string){
+    return this.httpClientService.post<Tag>({fullEndPoint:"https://localhost:7107/api/tags"},{objectClassId:objectClassId,name:name});
+  }
+
+  createObjectClass(name:string){
+    return this.httpClientService.post<ObjectClass>({fullEndPoint:"https://localhost:7107/api/objectClasses"},{name:name});
   }
 }
 
