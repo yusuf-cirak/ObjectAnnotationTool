@@ -5,7 +5,7 @@ export class Annotation  {
   width:number
   height:number
 
-  selectedObjectClass=null;
+  objectClassId=null;
   selectedTags=null;
 
   constructor(id:number,x:number,y:number,width:number,height:number) {

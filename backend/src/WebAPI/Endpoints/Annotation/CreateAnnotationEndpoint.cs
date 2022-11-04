@@ -22,7 +22,7 @@ public sealed class CreateAnnotationRequest
 }
 
 
-public sealed class CreateAnnotationEndpoint:Endpoint<CreateAnnotationRequest,CreateAnnotationResponse,CreateAnnotationMapper>
+public sealed class CreateAnnotationEndpoint:Endpoint<CreateAnnotationRequest,bool,CreateAnnotationMapper>
 {
     public override void Configure()
     {
@@ -34,12 +34,10 @@ public sealed class CreateAnnotationEndpoint:Endpoint<CreateAnnotationRequest,Cr
         
     }
 
-    private readonly IAnnotationRepository _repository;
     private readonly IFileService _fileService;
 
-    public CreateAnnotationEndpoint(IAnnotationRepository repository, IFileService fileService)
+    public CreateAnnotationEndpoint(IFileService fileService)
     {
-        _repository = repository;
         _fileService = fileService;
     }
 
@@ -48,15 +46,11 @@ public sealed class CreateAnnotationEndpoint:Endpoint<CreateAnnotationRequest,Cr
     {
         try
         {
-            List<Models.Annotation> annotations = new(Map.ToListEntity(req));
-        
-            annotations = (List<Models.Annotation>)await _repository.AddRangeAsync(annotations);
-
-            string annotationsToWrite = GetAnnotationsAsString(annotations);
+            string annotationsToWrite = GetAnnotationsAsString(req.Annotations);
 
             await _fileService.WriteToFileAsync($"logs","annotations","txt",annotationsToWrite);
         
-            await SendAsync(Map.ToResponseEntity(annotations), cancellation: ct);
+            await SendAsync(true, cancellation: ct);
         }
         catch (Exception e)
         {
@@ -68,27 +62,16 @@ public sealed class CreateAnnotationEndpoint:Endpoint<CreateAnnotationRequest,Cr
     }
     
     
-    private string GetAnnotationsAsString(IList<Models.Annotation> annotations)
+    private string GetAnnotationsAsString(IList<CreateAnnotationsRequestDto> annotations)
     {
         StringBuilder sb = new StringBuilder();
 
-        for (int i = 0; i < annotations.Count; i++)
+        foreach (var annotation in annotations)
         {
-            sb.AppendLine($"AnnotationId:{annotations[i].Id} - ObjectClassId:{annotations[i].ObjectClassId} - X: {annotations[i].X} - Y: {annotations[i].Y} - Width: {annotations[i].Width} - Height: {annotations[i].Height}");
+            sb.AppendLine(
+                $"ObjectClassId:{annotation.ObjectClassId} - X: {annotation.X} - Y: {annotation.Y} - Width: {annotation.Width} - Height: {annotation.Height}");
         }
 
         return  sb.ToString();
     }
-}
-
-
-public sealed class CreateAnnotationResponse
-{
-    public List<CreateAnnotationsRequestDto> Annotations { get; set; }
-
-    public CreateAnnotationResponse()
-    {
-        Annotations = new List<CreateAnnotationsRequestDto>();
-    }
-
 }

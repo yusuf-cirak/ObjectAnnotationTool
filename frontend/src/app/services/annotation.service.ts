@@ -1,3 +1,4 @@
+import { AddTagDialogData } from './../dialog/add-tag-dialog/add-tag-dialog.component';
 import { HttpClientService } from './http-client.service';
 import {
   AddObjectClassComponent,
@@ -29,17 +30,36 @@ export class AnnotationService {
     private httpClientService:HttpClientService
   ) {}
 
-  addTag(tags: Tag[]) {
+  addTag(tags:Tag[],objectClasses: ObjectClass[]) {
     this.dialogService.openDialog({
       componentType: AddTagDialogComponent,
-      data: { name: '',selectedObjectClass:ObjectClass, state: AddTagDialogState.No },
+
+      data:{objectClasses,name: '',selectedObjectClassId:undefined, state: AddTagDialogState.No},
       afterClosed: (data) => {
-        if (data !== AddTagDialogState.No && data !==undefined && data) {
-          tags.push(new Tag(3, 3, data));
-          this.toastrService.message('New tag successfully added!', 'Tag Add', {
-            messageType: ToastrMessageType.Success,
-            position: ToastrPosition.TopRight,
-          });
+        if (data.name!=="" && data.selectedObjectClassId!==undefined ) {
+          this.httpClientService.post<Tag>({fullEndPoint:"https://localhost:7107/api/tags"},{"objectClassId":parseInt(data.selectedObjectClassId),"name":data.name}).subscribe(e=>{
+            if (e.name==data.name) {
+              tags.push(e);
+              this.toastrService.message(
+                'New tag successfully added!',
+                'Tag Add',
+                {
+                  messageType: ToastrMessageType.Success,
+                  position: ToastrPosition.TopRight,
+                }
+              );
+            }
+            else{
+              this.toastrService.message(
+                'Something went wrong!',
+                'Error',
+                {
+                  messageType: ToastrMessageType.Error,
+                  position: ToastrPosition.TopRight,
+                }
+              );
+            }
+          })
         }
       },
     });
@@ -51,15 +71,29 @@ export class AnnotationService {
       data: { name: '', state: AddObjectClassDialogState.No },
       afterClosed: (data) => {
         if (data !== AddObjectClassDialogState.No && data !==undefined) {
-          objectClasses.push(new ObjectClass(3, data));
-          this.toastrService.message(
-            'New object class successfully added!',
-            'Object Class Add',
-            {
-              messageType: ToastrMessageType.Success,
-              position: ToastrPosition.TopRight,
+          this.httpClientService.post<ObjectClass>({fullEndPoint:"https://localhost:7107/api/objectClasses"},{"name":data}).subscribe(e=>{
+            if (e.name==data) {
+              objectClasses.push(e);
+              this.toastrService.message(
+                'New object class successfully added!',
+                'Object Class Add',
+                {
+                  messageType: ToastrMessageType.Success,
+                  position: ToastrPosition.TopRight,
+                }
+              );
             }
-          );
+            else{
+              this.toastrService.message(
+                'Something went wrong!',
+                'Error',
+                {
+                  messageType: ToastrMessageType.Warning,
+                  position: ToastrPosition.TopRight,
+                }
+              );
+            }
+          })
         }
       },
     });
@@ -203,12 +237,13 @@ export class AnnotationService {
   }
 
   public saveAnnotations(annotationParams: Partial<AnnotationParameters>) {
-    var selectedObjectClasses = [];
+    var selectedObjectClassIds = [];
+    var selectedTags=[];
 
     var annotations = annotationParams.boundingBox.output.annotations;
 
     for (const annotation of annotations) {
-      if (annotation.selectedObjectClass === null) {
+      if (annotation.objectClassId === null) {
         this.toastrService.message(
           `You haven't select object class for annotation that numbered as ${annotation.id}.\nSelect object classes for your annotations`,
           'Object Class Error',
@@ -219,13 +254,15 @@ export class AnnotationService {
         );
         return;
       }
-      selectedObjectClasses.push(annotation.selectedObjectClass);
+      selectedObjectClassIds.push(annotation.selectedObjectClass);
+      selectedTags.push(annotation.selectedTags);
+
     }
 
-    if (selectedObjectClasses.length === 0) {
+    if (selectedObjectClassIds.length === 0 || selectedTags.includes(null)) {
       this.toastrService.message(
-        "You haven't select object class for your annotations.\nSelect object classes for your annotations",
-        'Object Class Error',
+        "You haven't select object classes or tags for your annotations.\nSelect object classes or tags for your annotations",
+        'Error',
         {
           messageType: ToastrMessageType.Error,
           position: ToastrPosition.TopRight,
@@ -233,12 +270,14 @@ export class AnnotationService {
       );
       return;
     }
-    var duplicateArr = this.findDuplicatesInArray(selectedObjectClasses);
+    var duplicateObjectClassIdsArr:any[] = this.findDuplicatesInArray(selectedObjectClassIds);
 
-    if (duplicateArr.length > 0) {
+
+    if (duplicateObjectClassIdsArr.length > 1) {
+      console.log(duplicateObjectClassIdsArr);
       this.toastrService.message(
         'You selected same object classes for different annotations.\nCheck your object classes for annotations',
-        'Duplicate Object Classes for annotations',
+        'Duplicate Object Classes or Tags for annotations',
         {
           messageType: ToastrMessageType.Error,
           position: ToastrPosition.TopRight,
@@ -247,7 +286,23 @@ export class AnnotationService {
       return;
     }
 
+    if (this.findWrongSelectionsForObjectClasses(annotations)===true) {
+      this.toastrService.message(
+        'You selected wrong same tags for your selected annotation.\nCheck your selected object classes and selected tags',
+        'Duplicate Object Classes or Tags for annotations',
+        {
+          messageType: ToastrMessageType.Error,
+          position: ToastrPosition.TopRight,
+        }
+      );
+      return;
+    }
     // api post request
+
+    var request={"annotations":annotations};
+
+    this.httpClientService.post({fullEndPoint:"https://localhost:7107/api/annotations"},request).subscribe()
+
 
     this.toastrService.message(
       'Annotations writed to text file and saved to database successfully!',
@@ -261,6 +316,19 @@ export class AnnotationService {
 
   findDuplicatesInArray(arr: any[]) {
     return arr.filter((item, index) => arr.indexOf(item) !== index);
+  }
+
+  findWrongSelectionsForObjectClasses(annotations:any[]) {
+    var wrongSelection=false;
+    annotations.forEach(annotation => {
+      annotation.selectedTags.forEach(tag => {
+        if (annotation.id !=tag.objectClassId) {
+          wrongSelection=true;
+        }
+      });
+    });
+
+    return wrongSelection;
   }
 
   removeAnnotation(

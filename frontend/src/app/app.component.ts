@@ -1,4 +1,3 @@
-import { HttpClientService } from './services/http-client.service';
 import { ObjectClass } from './contracts/objectClass';
 import { Tag } from './contracts/tag';
 import {
@@ -6,7 +5,7 @@ import {
   BoundingBox,
   AnnotationParameters,
 } from './services/annotation.service';
-import { AfterViewInit, Component, Input } from '@angular/core';
+import { AfterViewInit, Component, Input, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -17,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 export class AppComponent implements AfterViewInit {
   title = 'ObjectAnnotationTool';
 
-  @Input() objectClasses:ObjectClass[];
+ @Output() objectClasses:ObjectClass[];
 
   public annotationCount: number = 0;
 
@@ -50,8 +49,6 @@ export class AppComponent implements AfterViewInit {
 
     this.context = this.canvas.getContext('2d');
 
-    this.tags = [new Tag(1, 1, 'asdasd'), new Tag(2, 2, 'ddddd')];
-
     this.annotationParameters = new AnnotationParameters(
       this.annotationCounter,
       this.imageUploaded,
@@ -71,7 +68,6 @@ export class AppComponent implements AfterViewInit {
       $event,
       this.annotationParameters
     );
-    alert(this.imageUploaded)
   }
 
   public pointCounter: number = 0;
@@ -95,7 +91,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   addTag() {
-    this.annotationService.addTag(this.tags);
+    this.annotationService.addTag(this.tags,this.objectClasses);
   }
 
   addObjectClass() {
@@ -110,34 +106,26 @@ export class AppComponent implements AfterViewInit {
     this.annotationService.removeAnnotation(index,this.annotationParameters);
   }
 
- async getTagsForObject(objectClassId:number){
-    // let tags:Observable<any[]>= this.httpClient.get(`https://localhost:7107/api/tags/${objectClassId}`);
-
-    // tags=await firstValueFrom(tags);
-
-    // console.log(tags);
-  }
-
-  async getObjectClasses(){
-    (await this.annotationService.getObjectClasses()).subscribe(data=>{
+   getObjectClasses(){
+    ( this.annotationService.getObjectClasses()).subscribe(data=>{
       this.objectClasses=data;
     })
   }
 
-  async getTags(){
-    (await this.annotationService.getTags()).subscribe(data=>{
+   getTags(){
+    ( this.annotationService.getTags()).subscribe(data=>{
       this.tags=data;
     })
   }
 
-  async createTag(objectClassId:number,name:string){
-    (await this.annotationService.createTag(objectClassId,name)).subscribe(data=>{
+   createTag(objectClassId:number,name:string){
+    ( this.annotationService.createTag(objectClassId,name)).subscribe(data=>{
       this.tags.push(data)
     })
   }
 
-  async createObjectClass(objectClassId:number,name:string){
-    (await this.annotationService.createTag(objectClassId,name)).subscribe(data=>{
+   createObjectClass(objectClassId:number,name:string){
+    ( this.annotationService.createTag(objectClassId,name)).subscribe(data=>{
       this.objectClasses.push(data);
 
     })

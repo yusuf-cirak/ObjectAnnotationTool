@@ -1,3 +1,4 @@
+import { AnnotationService } from './../../services/annotation.service';
 import { AppComponent } from './../../app.component';
 import { ObjectClass } from './../../contracts/objectClass';
 import { MatDialogRef,MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -12,25 +13,26 @@ import BaseDialog from 'src/app/base/base.dialog';
 export class AddTagDialogComponent extends BaseDialog<AddTagDialogComponent> {
 
 
-objectClasses:ObjectClass[]
-
   constructor(
     dialogRef: MatDialogRef<AddTagDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data:AddTagDialogData,
   ) {
     super(dialogRef);
   }
+
 }
 
 export class AddTagDialogData{
+  objectClasses:ObjectClass[]
   selectedObjectClassId:number
   name:string
   state:AddTagDialogState=AddTagDialogState.No
 
-  constructor(selectedObjectClassId:number,name:string,state:AddTagDialogState) {
+  constructor(objectClasses,selectedObjectClassId:number,name:string,state:AddTagDialogState) {
     this.selectedObjectClassId=selectedObjectClassId;
     this.name=name;
     this.state=state;
+    this.objectClasses=objectClasses;
   }
 }
 

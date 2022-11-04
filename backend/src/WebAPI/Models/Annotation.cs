@@ -11,7 +11,7 @@ public class Annotation : Entity // Tag
     public int Width { get; set; }
     public int Height { get; set; }
 
-    public virtual ICollection<ObjectClass> ObjectClasses { get; set; }
+    public virtual ObjectClass ObjectClass { get; set; }
 
     public Annotation()
     {
